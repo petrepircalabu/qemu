@@ -40,6 +40,7 @@
 #include "qemu/error-report.h"
 #include <libfdt.h>
 #include "hw/char/pl011.h"
+#include "hw/i2c/i2c.h"
 
 #define VEXPRESS_BOARD_ID 0x8e0
 #define VEXPRESS_FLASH_SIZE (64 * 1024 * 1024)
@@ -86,6 +87,7 @@ enum {
     VE_USB,
     VE_DAPROM,
     VE_VIRTIO,
+    VE_I2C,
 };
 
 static hwaddr motherboard_legacy_map[] = {
@@ -120,6 +122,7 @@ static hwaddr motherboard_legacy_map[] = {
     [VE_VIDEORAM] = 0x4c000000,
     [VE_ETHERNET] = 0x4e000000,
     [VE_USB] = 0x4f000000,
+    [VE_I2C] = 0x50000000,
 };
 
 static hwaddr motherboard_aseries_map[] = {
@@ -156,6 +159,7 @@ static hwaddr motherboard_aseries_map[] = {
     [VE_RTC] = 0x1c170000,
     [VE_COMPACTFLASH] = 0x1c1a0000,
     [VE_CLCD] = 0x1c1f0000,
+    [VE_I2C] = 0x50000000,
 };
 
 /* Structure defining the peculiarities of a specific daughterboard */
@@ -557,6 +561,7 @@ static void vexpress_common_init(MachineState *machine)
     MemoryRegion *flashalias = g_new(MemoryRegion, 1);
     MemoryRegion *flash0mem;
     const hwaddr *map = daughterboard->motherboard_map;
+    I2CBus *i2c;
     int i;
 
     daughterboard->init(vms, machine->ram_size, machine->cpu_model, pic);
@@ -648,6 +653,10 @@ static void vexpress_common_init(MachineState *machine)
     /* VE_COMPACTFLASH: not modelled */
 
     sysbus_create_simple("pl111", map[VE_CLCD], pic[14]);
+
+    dev = sysbus_create_simple("versatile_i2c", map[VE_I2C], NULL);
+    i2c = (I2CBus *)qdev_get_child_bus(dev, "i2c");
+    i2c_create_slave(i2c, "tmp105", 0x68);
 
     dinfo = drive_get_next(IF_PFLASH);
     pflash0 = ve_pflash_cfi01_register(map[VE_NORFLASH0], "vexpress.flash0",
