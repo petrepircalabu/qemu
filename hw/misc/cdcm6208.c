@@ -21,3 +21,78 @@
 #include "cdcm6208.h"
 #include "qapi/error.h"
 #include "qapi/visitor.h"
+
+static int cdcm6208_rx(I2CSlave *i2c)
+{
+    return 0;
+}
+
+static int cdcm6208_tx(I2CSlave *i2c, uint8_t data)
+{
+    return 0;
+}
+
+static int cdcm6208_event(I2CSlave *i2c, enum i2c_event event)
+{
+    return 0;
+}
+
+static int cdcm6208_post_load(void *opaque, int version_id)
+{
+    return 0;
+}
+
+static const VMStateDescription vmstate_cdcm6208 = {
+    .name = "CDCM6208",
+    .version_id = 0,
+    .minimum_version_id = 0,
+    .post_load = cdcm6208_post_load,
+    .fields = (VMStateField[]) {
+        VMSTATE_I2C_SLAVE(i2c, CDCM6208State),
+        VMSTATE_END_OF_LIST()
+    }
+};
+
+static void cdcm6208_reset(I2CSlave *i2c)
+{
+}
+
+static int cdcm6208_init(I2CSlave *i2c)
+{
+    CDCM6208State *s = CDCM6208(i2c);
+
+    cdcm6208_reset(&s->i2c);
+
+    return 0;
+}
+
+static void cdcm6208_initfn(Object *obj)
+{
+}
+
+static void cdcm6208_class_init(ObjectClass *klass, void *data)
+{
+    DeviceClass *dc = DEVICE_CLASS(klass);
+    I2CSlaveClass *k = I2C_SLAVE_CLASS(klass);
+
+    k->init = cdcm6208_init;
+    k->event = cdcm6208_event;
+    k->recv = cdcm6208_rx;
+    k->send = cdcm6208_tx;
+    dc->vmsd = &vmstate_cdcm6208;
+}
+
+static const TypeInfo cdcm6208_info = {
+    .name          = TYPE_CDCM6208,
+    .parent        = TYPE_I2C_SLAVE,
+    .instance_size = sizeof(CDCM6208State),
+    .instance_init = cdcm6208_initfn,
+    .class_init    = cdcm6208_class_init,
+};
+
+static void cdcm6208_register_types(void)
+{
+    type_register_static(&cdcm6208_info);
+}
+
+type_init(cdcm6208_register_types)
