@@ -88,6 +88,7 @@ enum {
     VE_DAPROM,
     VE_VIRTIO,
     VE_I2C,
+    VE_PL061,
 };
 
 static hwaddr motherboard_legacy_map[] = {
@@ -108,6 +109,7 @@ static hwaddr motherboard_legacy_map[] = {
     [VE_TIMER01] = 0x10011000,
     [VE_TIMER23] = 0x10012000,
     [VE_VIRTIO] = 0x10013000,
+    [VE_PL061] = 0x10014000,
     [VE_SERIALDVI] = 0x10016000,
     [VE_RTC] = 0x10017000,
     [VE_COMPACTFLASH] = 0x1001a000,
@@ -160,6 +162,7 @@ static hwaddr motherboard_aseries_map[] = {
     [VE_COMPACTFLASH] = 0x1c1a0000,
     [VE_CLCD] = 0x1c1f0000,
     [VE_I2C] = 0x50000000,
+    [VE_PL061] = 0x10014000,
 };
 
 /* Structure defining the peculiarities of a specific daughterboard */
@@ -657,6 +660,9 @@ static void vexpress_common_init(MachineState *machine)
     dev = sysbus_create_simple("versatile_i2c", map[VE_I2C], NULL);
     i2c = (I2CBus *)qdev_get_child_bus(dev, "i2c");
     i2c_create_slave(i2c, "tmp105", 0x68);
+
+    /* GPIOS */
+    sysbus_create_simple("pl061", map[VE_PL061], NULL);
 
     dinfo = drive_get_next(IF_PFLASH);
     pflash0 = ve_pflash_cfi01_register(map[VE_NORFLASH0], "vexpress.flash0",
