@@ -49,6 +49,8 @@ static const VMStateDescription vmstate_cdcm6208 = {
     .post_load = cdcm6208_post_load,
     .fields = (VMStateField[]) {
         VMSTATE_I2C_SLAVE(i2c, CDCM6208State),
+        VMSTATE_UINT8(resetn_pwr, CDCM6208State),
+        VMSTATE_UINT8(pdn, CDCM6208State),
         VMSTATE_END_OF_LIST()
     }
 };
@@ -57,9 +59,31 @@ static void cdcm6208_reset(I2CSlave *i2c)
 {
 }
 
+static void cdcm6208_gpio_set(void *opaque, int line, int level)
+{
+    CDCM6208State *s = (CDCM6208State *) opaque;
+
+    assert(s);
+
+    switch (line) {
+        case 0:
+            s->resetn_pwr = level;
+            break;
+        case 1:
+            s->pdn = level;
+            break;
+        default:
+            /* FIXME: Add error handling */
+	    break;
+    }
+}
+
 static int cdcm6208_init(I2CSlave *i2c)
 {
+    DeviceState *dev = DEVICE(i2c);
     CDCM6208State *s = CDCM6208(i2c);
+
+    qdev_init_gpio_in(dev, cdcm6208_gpio_set, 2);
 
     cdcm6208_reset(&s->i2c);
 

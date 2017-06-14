@@ -24,6 +24,8 @@
 
 typedef struct CDCM6208State {
     I2CSlave i2c;
+    uint8_t resetn_pwr;
+    uint8_t pdn;
 } CDCM6208State;
 
 #endif /* QEMU_CDCM6208_H */
