@@ -94,6 +94,12 @@ static void cdcm6208_initfn(Object *obj)
 {
 }
 
+static Property cdcm6208_props[] = {
+    DEFINE_PROP_UINT8("RESETn_PWR", CDCM6208State, resetn_pwr, 0),
+    DEFINE_PROP_UINT8("PDN", CDCM6208State, pdn, 0),
+    DEFINE_PROP_END_OF_LIST()
+};
+
 static void cdcm6208_class_init(ObjectClass *klass, void *data)
 {
     DeviceClass *dc = DEVICE_CLASS(klass);
@@ -103,6 +109,8 @@ static void cdcm6208_class_init(ObjectClass *klass, void *data)
     k->event = cdcm6208_event;
     k->recv = cdcm6208_rx;
     k->send = cdcm6208_tx;
+
+    dc->props = cdcm6208_props;
     dc->vmsd = &vmstate_cdcm6208;
 }
 
