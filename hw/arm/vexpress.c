@@ -552,7 +552,7 @@ static void vexpress_common_init(MachineState *machine)
     VexpressMachineState *vms = VEXPRESS_MACHINE(machine);
     VexpressMachineClass *vmc = VEXPRESS_MACHINE_GET_CLASS(machine);
     VEDBoardInfo *daughterboard = vmc->daughterboard;
-    DeviceState *dev, *sysctl, *pl041;
+    DeviceState *dev, *sysctl, *pl041, *pl061, *cdcm6208;
     qemu_irq pic[64];
     uint32_t sys_id;
     DriveInfo *dinfo;
@@ -659,10 +659,13 @@ static void vexpress_common_init(MachineState *machine)
 
     dev = sysbus_create_simple("versatile_i2c", map[VE_I2C], NULL);
     i2c = (I2CBus *)qdev_get_child_bus(dev, "i2c");
-    i2c_create_slave(i2c, "tmp105", 0x68);
+    cdcm6208 = i2c_create_slave(i2c, "cdcm6208", 0x68);
 
     /* GPIOS */
-    sysbus_create_simple("pl061", map[VE_PL061], NULL);
+    pl061 = sysbus_create_simple("pl061", map[VE_PL061], NULL);
+
+    qdev_connect_gpio_out(pl061, 0, qdev_get_gpio_in(cdcm6208, 0));
+    qdev_connect_gpio_out(pl061, 1, qdev_get_gpio_in(cdcm6208, 1));
 
     dinfo = drive_get_next(IF_PFLASH);
     pflash0 = ve_pflash_cfi01_register(map[VE_NORFLASH0], "vexpress.flash0",
